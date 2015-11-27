@@ -1,0 +1,2 @@
+= SimplePID
+A PID controller library independent of run environment, but one which works well with Arduino.
