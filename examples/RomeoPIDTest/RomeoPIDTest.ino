@@ -63,8 +63,8 @@ float loopTime = 0.0;
 // Kp until steady oscillation occurs. Tu is the oscillation wavelength.
 const float Ku = .19;
 const float Tu = .23;
-const float Kp = 0.45*Ku;
-const float Ki = 1.2*Kp/Ku;
+const float Kp = 0.6*Ku;
+const float Ki = 2*Kp/Tu;
 const float Kd = Kp*Tu/8;
 
 SimplePID leftController = SimplePID(Kp, Ki, Kd);
