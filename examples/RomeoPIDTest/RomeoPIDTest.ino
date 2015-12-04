@@ -7,6 +7,7 @@
 // current speed versus time. You should see a classic PID controller graph
 // with some overshoot.
 
+#include <PinChangeInt.h>
 #include <SimplePID.h>
 
 // Motor parameters. These are based on a Pololu #2285 motor with 48cpr
@@ -14,9 +15,8 @@
 const float GEAR_RATIO = 46.85;
 const float ENCODER_CPR = 48;
 
-// Only using A changes to get ticks. Remove the "/ 2.0" if using both A
-// and B changes.
-const float TICKS_PER_REV = GEAR_RATIO * ENCODER_CPR / 2.0;
+// Number of encoder ticks per revolution of the wheel.
+const float TICKS_PER_REV = GEAR_RATIO * ENCODER_CPR;
 
 // Maximum desired motor speed. Pololu #2285 are rated for 130rpm, but we
 // don't drive them with enough voltage to achieve that.
@@ -33,6 +33,12 @@ const int LEFT_DIRECTION = 4;
 const int LEFT_SPEED = 5;
 const int RIGHT_SPEED = 6;
 const int RIGHT_DIRECTION = 7;
+
+// Pins for the Pololu motor encoder outputs.
+const int M1_A = 10;
+const int M1_B = 11;
+const int M2_A = 14;
+const int M2_B = 15;
 
 // Minimum motor control value. Motor output below this will stall.
 const int MIN_MOTOR_CMD = 60;
@@ -59,16 +65,37 @@ float loopTime = 0.0;
 
 // Ziegler-Nichols tuning. See this Wikipedia article for details:
 //     https://en.wikipedia.org/wiki/PID_controller#Loop_tuning
-// Ku and Tu were determined by setting Ki and Kd to zero, then increasing
-// Kp until steady oscillation occurs. Tu is the oscillation wavelength.
-const float Ku = .19;
-const float Tu = .23;
+// To tune the controller, set USE_KU_ONLY to 1 and increase Ku
+// until oscillation occurs, and set Tu to the oscillation period
+// in seconds. Then set USE_KU_ONLY to zero to use the
+// Ziegler-Nichols tune. To get a less agressive tune, set LESS_AGGRESSIVE
+// to 1.
+
+// Set to 1 to use Ku only, to determine oscillation point.
+#define USE_KU_ONLY 0
+
+const float Ku = .11;
+const float Tu = .20;
+
+#define LESS_AGGRESSIVE 0
+
+#if !LESS_AGGRESSIVE
 const float Kp = 0.6*Ku;
 const float Ki = 2*Kp/Tu;
 const float Kd = Kp*Tu/8;
+#else
+const float Kp = 0.2*Ku;
+const float Ki = 2*Kp/Tu;
+const float Kd = Kp*Tu/3;
+#endif
 
+#if USE_KU_ONLY
+SimplePID leftController = SimplePID(Ku, 0, 0);
+SimplePID rightController = SimplePID(Ku, 0, 0);
+#else
 SimplePID leftController = SimplePID(Kp, Ki, Kd);
 SimplePID rightController = SimplePID(Kp, Ki, Kd);
+#endif
 
 // Sets up the serial output and the motor control pins, and attaches
 // interrupt handlers to the pins on which we will read the encoder
@@ -82,8 +109,10 @@ void setup() {
   pinMode(RIGHT_DIRECTION, OUTPUT);
   pinMode(RIGHT_SPEED, OUTPUT);
   
-  attachInterrupt(digitalPinToInterrupt(2), handleLeftTick, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(3), handleRightTick, CHANGE);
+  attachPinChangeInterrupt(M1_A, leftAChange, CHANGE);
+  attachPinChangeInterrupt(M1_B, leftBChange, CHANGE);
+  attachPinChangeInterrupt(M2_A, rightAChange, CHANGE);
+  attachPinChangeInterrupt(M2_B, rightBChange, CHANGE);
 
   Serial.print("Time\tLeft Target\tLeft Speed\tLeft Cum Error\tLeft Motor");
   Serial.print("\tRight Target\tRightSpeed\tRight Cum Error\tRightMotor");
@@ -97,7 +126,7 @@ void setup() {
 // and adjusts the target speeds depending on whether the user is pressing
 // switches S2 through S5, as indicated in the code below.
 void loop() {
-  delay(20);
+  delay(15);
 
   unsigned long curLoopTime = micros();
   noInterrupts();
@@ -135,7 +164,7 @@ void loop() {
   setSpeed(leftMotorCmd, rightMotorCmd);
 
   if (leftSpeedTarget > 0 || leftSpeed > 0 || rightSpeedTarget > 0 || rightSpeed > 0) {
-    Serial.print(loopTime);
+    Serial.print(loopTime, 3);
     Serial.print("\t");
     Serial.print(leftSpeedTarget);
     Serial.print("\t");
@@ -210,16 +239,32 @@ void setSpeed(int leftSpeed, int rightSpeed) {
   analogWrite(RIGHT_SPEED, abs(rightSpeed));
 }
 
-void handleLeftTick() {
-  if (digitalRead(2) == digitalRead(8)) {
+void leftAChange() {
+  if (digitalRead(M1_A) == digitalRead(M1_B)) {
     ++leftTicks;
   } else {
     --leftTicks;
   }
 }
 
-void handleRightTick() {
-  if (digitalRead(3) != digitalRead(9)) {
+void leftBChange() {
+  if (digitalRead(M1_A) != digitalRead(M1_B)) {
+    ++leftTicks;
+  } else {
+    --leftTicks;
+  }
+}
+
+void rightAChange() {
+  if (digitalRead(M2_A) != digitalRead(M2_B)) {
+    ++rightTicks;
+  } else {
+    --rightTicks;
+  }
+}
+
+void rightBChange() {
+  if (digitalRead(M2_A) == digitalRead(M2_B)) {
     ++rightTicks;
   } else {
     --rightTicks;
@@ -247,4 +292,3 @@ int readSwitch() {
     return 1;
   }
 }
-
