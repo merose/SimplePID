@@ -114,8 +114,8 @@ void setup() {
   attachPinChangeInterrupt(M2_A, rightAChange, CHANGE);
   attachPinChangeInterrupt(M2_B, rightBChange, CHANGE);
 
-  Serial.print("Time\tLeft Target\tLeft Speed\tLeft Cum Error\tLeft Motor");
-  Serial.print("\tRight Target\tRightSpeed\tRight Cum Error\tRightMotor");
+  Serial.print("Time (s)\tLeft Target\tLeft Speed\tLeft Cum Error\tLeft Motor");
+  Serial.print("\tRight Target\tRight Speed\tRight Cum Error\tRight Motor");
   Serial.println();
 
   lastLoopTime = micros();
