@@ -1,2 +1,93 @@
 = SimplePID
+
 A PID controller library independent of run environment, but one which works well with Arduino.
+
+== Installation
+
+To install the library into your Arduino installation, go to the _Releases_ tab and download
+the latest release. This will be a ZIP file called `SimplePID_v__version__.zip`, for some
+version number. Unzip this into your `__sketchbook__/libraries` folder, where _sketchbook_
+is the root of your Arduino sketches. On OS X and Windows it is usually `~/Documents/Arduino`.
+This will create a directory called `SimplePID_v__version__`. Rename that directory to
+`SimplePID`.
+
+You should then have a directory under your _sketchbook_ directory containing the library files at:
+
+  libraries/SimplePID/
+
+== Usage
+
+To use the SimplePID library, add `#include <SimplePID.h>` to the includes in your sketch.
+Then create an instance of the PID controller by defining a global variable:
+
+----
+SimplePID myPID(pConstant, iConstant, dConstant);
+----
+
+(Replace `pConstant`, `iConstant`, and `dConstant` with the proportional, integral, and differential
+constants you desire.) For a P-controller, set the integral and differential constants to zero,
+for example.
+
+=== Setting the Target
+
+The target value you want to track is usually called the _setpoint_. At any time you can change
+the setpoint by calling `SimplePID.setSetPoint(someValue)`. For example, using the PID controller
+defined in the example above, we could set the target at 3.4 as follows:
+
+----
+myPID.setSetPoint(3.4);
+----
+
+=== Getting the Control Value
+
+Your code needs to have some way of keeping track of time in order to determine the delta
+time from the last control value. A recommended way of doing that is farther down. You also
+need to have a way of sensing the actual error value,
+the difference in speed of the motor versus the desired value, or the process error.
+Once you have the actual error value and the delta time, in seconds, you get the control value
+to use like this:
+
+----
+float controlValue = myPID.getControlValue(actualError, dt);
+----
+
+For a motor, you will usually add the control value to the current control value and change
+the motor speed.
+
+=== Keeping Track of Delta Time
+
+One way of doing that is as follows:
+
+----
+#include <SimplePID.h>
+
+SimplePID myPID(...);
+unsigned long lastLoopTime;
+
+void setup() {
+    ...
+    lastLoopTime = micros();
+}
+
+void loop() {
+    delay(howeverLongYouLike);
+    
+    float error = ... some way of getting the actual error value ...
+    
+    unsigned long curLoopTime = micros();
+    float dt = (curLoopTime - lastLoopTime) / 1E6;
+    
+    float controlValue = myPID.getControlValue(error, dt);
+    ... code to control the motor or other process ...
+    
+    lastLoopTime = curLoopTime;
+}
+----
+
+In this case `dt` is set to the delta time since the last control, in seconds.
+
+== An Example
+
+There is an example of using the library to investigate PID tunings for a motor. It is specific
+to the DFRobot Romeo v2 Arduino board and motor driver, but should give a reasonable impression
+of how to use `SimplePID`. Open that sketch by going to Files > Examples > SimplePID > RomeoPIDTest.
