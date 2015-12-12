@@ -5,10 +5,10 @@ A PID controller library independent of run environment, but one which works wel
 == Installation
 
 To install the library into your Arduino installation, go to the _Releases_ tab and download
-the latest release. This will be a ZIP file called `SimplePID_v__version__.zip`, for some
+the latest release. This will be a ZIP file called `SimplePID-__version__.zip`, for some
 version number. Unzip this into your `__sketchbook__/libraries` folder, where _sketchbook_
 is the root of your Arduino sketches. On OS X and Windows it is usually `~/Documents/Arduino`.
-This will create a directory called `SimplePID_v__version__`. Rename that directory to
+This will create a directory called `SimplePID-__version__`. Rename that directory to
 `SimplePID`.
 
 You should then have a directory under your _sketchbook_ directory containing the library files at:
