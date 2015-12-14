@@ -7,7 +7,7 @@
 // current speed versus time. You should see a classic PID controller graph
 // with some overshoot.
 
-#include <PinChangeInt.h>
+#include <EnableInterrupt.h>
 #include <SimplePID.h>
 
 // Motor parameters. These are based on a Pololu #2285 motor with 48cpr
@@ -109,10 +109,10 @@ void setup() {
   pinMode(RIGHT_DIRECTION, OUTPUT);
   pinMode(RIGHT_SPEED, OUTPUT);
   
-  attachPinChangeInterrupt(M1_A, leftAChange, CHANGE);
-  attachPinChangeInterrupt(M1_B, leftBChange, CHANGE);
-  attachPinChangeInterrupt(M2_A, rightAChange, CHANGE);
-  attachPinChangeInterrupt(M2_B, rightBChange, CHANGE);
+  enableInterrupt(M1_A, leftAChange, CHANGE);
+  enableInterrupt(M1_B, leftBChange, CHANGE);
+  enableInterrupt(M2_A, rightAChange, CHANGE);
+  enableInterrupt(M2_B, rightBChange, CHANGE);
 
   Serial.print("Time (s)\tLeft Target\tLeft Speed\tLeft Cum Error\tLeft Motor");
   Serial.print("\tRight Target\tRight Speed\tRight Cum Error\tRight Motor");
