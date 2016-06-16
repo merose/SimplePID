@@ -84,9 +84,19 @@ float loopTime = 0.0;
 const float Ku = .15;
 const float Tu = .1142857143;
 
+#define MANUAL_TUNE 1
 #define LESS_AGGRESSIVE 0
 
-#if !LESS_AGGRESSIVE
+#if MANUAL_TUNE
+// Found empirically to rapidly converge with little overshoot.
+// There is no integral constant, but not needed when driving
+// on flat ground, and when the heading is otherwise controlled
+// by higher-level software. (I.e., there's no need to catch up
+// for past errors.)
+const float Kp = 0.07;
+const float Ki = 0.0;
+const float Kd = 0.001;
+#elif !LESS_AGGRESSIVE
 const float Kp = 0.6*Ku;
 const float Ki = 2*Kp/Tu;
 const float Kd = Kp*Tu/8;
@@ -116,8 +126,11 @@ void setup() {
   enableInterrupt(M2_A, rightAChange, CHANGE);
   enableInterrupt(M2_B, rightBChange, CHANGE);
 
-  Serial.print("Time (s)\tLeft Target\tLeft Speed\tLeft Cum Error\tLeft Motor");
-  Serial.print("\tRight Target\tRight Speed\tRight Cum Error\tRight Motor");
+//  Serial.print("Time (s)\t");
+  Serial.print("Left Target\tLeft Speed");
+//  Serial.print("\tLeft Cum Error\tLeft Motor\t");
+  Serial.print("\tRight Target\tRight Speed");
+//  Serial.print("\tRight Cum Error\tRight Motor");
   Serial.println();
 
   lastLoopTime = micros();
@@ -168,25 +181,25 @@ void loop() {
   setSpeed(leftMotorCmd, rightMotorCmd);
 
   if (leftSpeedTarget > 0 || leftSpeed > 0 || rightSpeedTarget > 0 || rightSpeed > 0) {
-    Serial.print(loopTime, 3);
-    Serial.print("\t");
+//    Serial.print(loopTime, 3);
+//    Serial.print("\t");
     Serial.print(leftSpeedTarget);
     Serial.print("\t");
     Serial.print(leftSpeed);
     Serial.print("\t");
-    Serial.print(leftController.getCumulativeError());
-    Serial.print("\t");
-    Serial.print(leftMotorCmd);
-    Serial.print("\t");
+//    Serial.print(leftController.getCumulativeError());
+//    Serial.print("\t");
+//    Serial.print(leftMotorCmd);
+//    Serial.print("\t");
   
     Serial.print(rightSpeedTarget);
     Serial.print("\t");
     Serial.print(rightSpeed);
     Serial.print("\t");
-    Serial.print(rightController.getCumulativeError());
-    Serial.print("\t");
-    Serial.print(rightMotorCmd);
-    Serial.print("\t");
+//    Serial.print(rightController.getCumulativeError());
+//    Serial.print("\t");
+//    Serial.print(rightMotorCmd);
+//    Serial.print("\t");
   
     Serial.println();
 
