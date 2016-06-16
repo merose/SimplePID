@@ -7,7 +7,9 @@ class SimplePID {
   public:
 
     SimplePID(float Kp, float Ki, float Kd);
-  
+
+    void setConstants(float Kp, float Ki, float Kd);
+    
     void setOutputRange(float minOutput, float maxOutput);
 
     void setSetPoint(float setPoint);

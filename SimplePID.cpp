@@ -12,6 +12,12 @@ SimplePID::SimplePID(float Kp, float Ki, float Kd) {
   sumError = 0.0;
   lastActual = 0.0;
 }
+
+void SimplePID::setConstants(float Kp, float Ki, float Kd) {
+  this->Kp = Kp;
+  this->Ki = Ki;
+  this->Kd = Kd;
+}
   
 void SimplePID::setOutputRange(float minOutput, float maxOutput) {
   this->minOutput = minOutput;
